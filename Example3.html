@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+
+
+    function windowToCanvas(x, y) {
+        var bbox = canvas.getBoundingClientRect();
+        return {x: x - bbox.left, y: y - bbox.top}
+    }
+    // Ball
+    function Ball() {
+        this.radius = 10;
+        this.x = 0;
+        this.y = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.color = "black";
+    }
+
+    Ball.prototype = {
+        draw : function () {
+            context.save();
+
+            context.beginPath();
+            context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            context.fillStyle = this.color;
+            context.fill();
+
+            context.restore();
+        }
+    };
+    // Vector2d
+    function Vector2d(vx, vy) {
+        this.vx = vx;
+        this.vy = vy;
+    }
+
+    Vector2d.prototype = {
+        add : function (vec) {
+            return new Vector2d(this.vx + vec.vx, this.vy + vec.vy);
+        },
+        sub : function (vec) {
+            return new Vector2d(this.vx - vec.vx, this.vy - vec.vy);
+        },
+        dot : function (vec) {
+            return this.vx * vec.vx + this.vy * vec.vy;
+        },
+        scale : function (scale) {
+            return new Vector2d(this.vx * scale, this.vy * scale);
+        },
+        length : function () {
+            return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        },
+        normalize : function () {
+            var len = this.length();
+            return new Vector2d(this.vx / len, this.vy / len);
+        },
+        normal : function () {
+            return new Vector2d(-this.vy, this.vx);
+        }
+    };
+    /**
+     * Point
+     * @param x
+     * @param y
+     * @constructor
+     */
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    /**
+     * Line
+     * @param sPt
+     * @param ePt
+     * @constructor
+     */
+    function Line(sPt, ePt) {
+        this.sPt = sPt;
+        this.ePt = ePt;
+    }
+
+    Line.prototype = {
+        draw: function () {
+            context.save();
+
+            context.beginPath();
+            context.moveTo(this.sPt.x, this.sPt.y);
+            context.lineTo(this.ePt.x, this.ePt.y);
+            context.stroke();
+
+            context.restore();
+        }
+    }
+
+    var line = new Line(new Point(100, 100), new Point(400, 200));
+    var line1 = new Line(new Point(100, 200), new Point(400, 300));
+
+    var ball = new Ball();
+
+    render();
+
+    canvas.onmousemove = function (e) {
+        var loc = windowToCanvas(e.clientX, e.clientY);
+
+        ball.x = loc.x;
+        ball.y = loc.y;
+
+        //hitTestByDistance();
+        hitTestByIntersect();
+
+        render();
+    }
+
+    function hitTestByDistance() {
+        var a = new Vector2d(line.ePt.x - line.sPt.x, line.ePt.y - line.sPt.y);
+        var b = new Vector2d(line.sPt.x - ball.x, line.sPt.y - ball.y);
+
+        var t = (b.dot(a) / a.dot(a)) * -1;
+
+        if(t < 0 || t > 1) return;
+
+        var p = a.scale(t).add(b);
+
+        if(p.length() <= ball.radius){
+            ball.color = "red";
+        } else {
+            ball.color = "black";
+        }
+    }
+
+    function hitTestByIntersect() {
+        var a = new Vector2d(line.ePt.x - line.sPt.x, line.ePt.y - line.sPt.y);
+        var i = new Vector2d(line1.ePt.x - line1.sPt.x, line1.ePt.y - line1.sPt.y);
+        var b = new Vector2d(line.sPt.x - line1.sPt.x, line.sPt.y - line1.sPt.y);
+
+        var t = b.dot(i.normal()) / a.dot(i.normal()) * -1;
+        var s = b.dot(a.normal()) / i.dot(a.normal());
+
+        if(t < 0 || t > 1 || s < 0 || s > 1) return;
+
+        var p = a.scale(t).add(b);
+
+        ball.x = line1.sPt.x + p.vx;
+        ball.y = line1.sPt.y + p.vy;
+    }
+
+    function render() {
+        context.clearRect(0,0,canvas.width, canvas.height);
+
+        line.draw();
+        line1.draw();
+        ball.draw();
+    }
+
+</script>
+</body>
+</html>
