@@ -19,71 +19,17 @@
 <canvas id='canvas' width="800" height="600">
     Canvas not supported
 </canvas>
+<script src="common.js"></script>
 <script>
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext("2d");
-
-    // Util
-    function windowToCanvas(x, y) {
-        var bbox = canvas.getBoundingClientRect();
-        return { x : x - bbox.left, y : y - bbox.top }
-    }
-
-    // Ball
-    function Ball() {
-        this.radius = 10;
-        this.x = 0;
-        this.y = 0;
-        this.vx = 0;
-        this.vy = 0;
-    }
-
-    Ball.prototype = {
-        draw : function () {
-            context.save();
-
-            context.beginPath();
-            context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            context.fill();
-
-            context.restore();
-        }
-    };
-
-    // Vector2d
-    function Vector2d(vx, vy) {
-        this.vx = vx;
-        this.vy = vy;
-    }
-
-    Vector2d.prototype = {
-        add : function (vec) {
-            return new Vector2d(this.vx + vec.vx, this.vy + vec.vy);
-        },
-        sub : function (vec) {
-            return new Vector2d(this.vx - vec.vx, this.vy - vec.vy);
-        },
-        dot : function (vec) {
-            return this.vx * vec.vx + this.vy * vec.vy;
-        },
-        scale : function (scale) {
-            return new Vector2d(this.vx * scale, this.vy * scale);
-        },
-        length : function () {
-            return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        },
-        normalize : function () {
-            var len = this.length();
-            return new Vector2d(this.vx / len, this.vy / len);
-        }
-    };
 
     // Main
     var startX = 100;
     var startY = 100;
 
-    var speed = 10;
-    var gravity = 0.2;
+    var speed = 50;
+    var gravity = 0.4;
 
     var friction = 1;
 
@@ -91,6 +37,18 @@
 
     ball.x = startX;
     ball.y = startY;
+
+    var boxes = [];
+    var box = new Box(400,300, 300, 30, 0.5, 0.5, true);
+    boxes.push(box);
+    var box2 = new Box(100,100, 200, 40, 0.5, 0.5, true);
+    box2.rotate(Math.PI/4);
+    boxes.push(box2);
+    var box3 = new Box(50,400, 200, 50, 0.5, 0.5, true);
+    box3.rotate(Math.PI/2);
+    boxes.push(box3);
+    var box4 = new Box(10,10, 780, 580, 0.5, 0.5, false);
+    boxes.push(box4);
 
     canvas.onmousedown = function(e) {
         var loc = windowToCanvas(e.clientX, e.clientY);
@@ -105,8 +63,8 @@
         var a = new Vector2d(dx, dy);
         var b = a.normalize().scale(speed);
 
-        ball.vx = b.vx;
-        ball.vy = b.vy;
+        ball.vec.vx = b.vx;
+        ball.vec.vy = b.vy;
 
         ball.x = startX;
         ball.y = startY;
@@ -116,36 +74,106 @@
 
     // animation tick
     function loop() {
+        ball.vec.vy += gravity;
+        ball.x += ball.vec.vx;
+        ball.y += ball.vec.vy;
 
-        //ball.vy += gravity;
-
-        ball.x += ball.vx;
-        ball.y += ball.vy;
-
-        if(ball.x < ball.radius) {
-            ball.x = ball.radius;
-            ball.vx *= -friction;
-        }
-        else if(ball.x > canvas.width - ball.radius) {
-            ball.x = canvas.width - ball.radius;
-            ball.vx *= -friction;
-        }
-        else if(ball.y < ball.radius) {
-            ball.y = ball.radius;
-            ball.vy *= -friction;
-        }
-        else if(ball.y > canvas.height - ball.radius) {
-            ball.y = canvas.height - ball.radius;
-            ball.vy *= -friction;
+        for(var i = 0; i < boxes.length; i++) {
+            hitTest(boxes[i]);
         }
 
         render();
         requestAnimationFrame(loop);
     }
+
+    function hitTest(box) {
+        for(var i = 0; i < box.lines.length; i++) {
+            var line = box.lines[i];
+
+            hitTestByDistance(line);
+            hitTestByIntersect(line);
+        }
+    }
+
+    function hitTestByDistance(line) {
+        var a = new Vector2d(line.ePt.x - line.sPt.x, line.ePt.y - line.sPt.y);
+        var b = new Vector2d(line.sPt.x - ball.x, line.sPt.y - ball.y);
+
+        var t = b.dot(a) / a.dot(a) * -1;
+
+        if( t < 0 || t > 1) return;
+
+        var p = a.scale(t).add(b);
+
+        if(p.length() <= ball.radius) {
+
+            var c = new Vector2d(line.sPt.x - ball.x, line.sPt.y - ball.y);
+            var d = a.normal().normalize();
+            var len = ball.radius - c.dot(d);
+            var e = d.scale(len);
+
+            ball.x -= e.vx;
+            ball.y -= e.vy;
+
+            reflectVector(a);
+        }
+    }
+
+    function hitTestByIntersect(line) {
+        var a = new Vector2d(line.ePt.x - line.sPt.x, line.ePt.y - line.sPt.y);
+        var b = new Vector2d(line.sPt.x - ball.x, line.sPt.y - ball.y);
+        var c = ball.vec;
+        var d = c.normal();
+
+        var t = b.dot(d) / d.dot(a) * -1;
+
+        var e = b.scale(-1);
+        var f = a.normal();
+
+        var s = e.dot(f) / f.dot(c) * -1;
+
+        if(t < 0 || t > 1 || s < 0 || s > 1) return;
+
+        reflectVector(a);
+    }
+    function reflectVector(lv){
+        var n = lv.normal().normalize();
+        var m = n.scale(ball.vec.scale(-1).dot(n));
+
+        ball.vec = ball.vec.add(m.scale(2));
+    }
+    function hitTestWall() {
+        if(ball.x < ball.radius) {
+            ball.x = ball.radius;
+            ball.vec.vx *= -friction;
+        }
+        else if(ball.x > canvas.width - ball.radius) {
+            ball.x = canvas.width - ball.radius;
+            ball.vec.vx *= -friction;
+        }
+        else if(ball.y < ball.radius) {
+            ball.y = ball.radius;
+            ball.vec.vy *= -friction;
+        }
+        else if(ball.y > canvas.height - ball.radius) {
+            ball.y = canvas.height - ball.radius;
+            ball.vec.vy *= -friction;
+        }
+    }
+
     function render() {
-        context.clearRect(0, 0, canvas.width, canvas.height)
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
         ball.draw();
+
+        boxes[0].rotate(-0.01);
+        boxes[1].rotate(-0.01);
+        boxes[2].rotate(0.01);
+
+        for(var i = 0; i < boxes.length; i++)
+        {
+            boxes[i].draw();
+        }
     }
 
 </script>

@@ -19,105 +19,15 @@
 <canvas id='canvas' width="800" height="600">
     Canvas not supported
 </canvas>
+<script src="common.js"></script>
 <script>
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext("2d");
 
-
-    function windowToCanvas(x, y) {
-        var bbox = canvas.getBoundingClientRect();
-        return {x: x - bbox.left, y: y - bbox.top}
-    }
-    // Ball
-    function Ball() {
-        this.radius = 10;
-        this.x = 0;
-        this.y = 0;
-        this.vx = 0;
-        this.vy = 0;
-        this.color = "black";
-    }
-
-    Ball.prototype = {
-        draw : function () {
-            context.save();
-
-            context.beginPath();
-            context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            context.fillStyle = this.color;
-            context.fill();
-
-            context.restore();
-        }
-    };
-    // Vector2d
-    function Vector2d(vx, vy) {
-        this.vx = vx;
-        this.vy = vy;
-    }
-
-    Vector2d.prototype = {
-        add : function (vec) {
-            return new Vector2d(this.vx + vec.vx, this.vy + vec.vy);
-        },
-        sub : function (vec) {
-            return new Vector2d(this.vx - vec.vx, this.vy - vec.vy);
-        },
-        dot : function (vec) {
-            return this.vx * vec.vx + this.vy * vec.vy;
-        },
-        scale : function (scale) {
-            return new Vector2d(this.vx * scale, this.vy * scale);
-        },
-        length : function () {
-            return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        },
-        normalize : function () {
-            var len = this.length();
-            return new Vector2d(this.vx / len, this.vy / len);
-        },
-        normal : function () {
-            return new Vector2d(-this.vy, this.vx);
-        }
-    };
-    /**
-     * Point
-     * @param x
-     * @param y
-     * @constructor
-     */
-    function Point(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    /**
-     * Line
-     * @param sPt
-     * @param ePt
-     * @constructor
-     */
-    function Line(sPt, ePt) {
-        this.sPt = sPt;
-        this.ePt = ePt;
-    }
-
-    Line.prototype = {
-        draw: function () {
-            context.save();
-
-            context.beginPath();
-            context.moveTo(this.sPt.x, this.sPt.y);
-            context.lineTo(this.ePt.x, this.ePt.y);
-            context.stroke();
-
-            context.restore();
-        }
-    }
-
     var line = new Line(new Point(100, 100), new Point(400, 200));
-    var line1 = new Line(new Point(100, 200), new Point(400, 300));
+    var line1 = new Line(new Point(100, 700), new Point(400, 100));
 
-    var ball = new Ball();
+    var ball = new Ball(context);
 
     render();
 
