@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function windowToCanvas(x, y) {
+        var bbox = canvas.getBoundingClientRect();
+        return { x : x - bbox.left, y : y - bbox.top };
+    }
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function Ball() {
+        this.radius = 10;
+
+        this.x = 0;
+        this.y = 0;
+    }
+
+    Ball.prototype = {
+        draw: function() {
+            context.save();
+
+            context.translate(this.x, this.y);
+
+            context.beginPath();
+            context.arc(0,0,this.radius,0,Math.PI * 2);
+            context.fillStyle = "red";
+            context.fill();
+
+            context.restore();
+        }
+    }
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+
+    var speed = 5;
+
+    var startX = 100;
+    var startY = 100;
+
+    var ax = 0;
+    var ay = 0;
+
+    var vx = 0;
+    var vy = 0;
+
+    var friction = 0.97;
+    var easing = 0.1;
+
+    var ball = new Ball();
+    ball.x = startX;
+    ball.y = startY;
+
+    var targetX = canvas.width/2;
+    var targetY = canvas.height /2;
+    canvas.onmousemove = function(e) {
+        //ax = 0.5;
+        //ay = 0.5;
+
+        var loc = windowToCanvas(e.clientX, e.clientY);
+
+        targetX = loc.x;
+        targetY = loc.y;
+
+    }
+
+    requestAnimationFrame(loop);
+    function loop() {
+        ax = (targetX - ball.x) * easing;
+        ay = (targetY - ball.y) * easing;
+
+        vx += ax;
+        vy += ay;
+
+        vx *= friction;
+        vy *= friction;
+
+        ball.x += vx;
+        ball.y += vy;
+
+        render();
+        requestAnimationFrame(loop);
+    }
+
+    function render() {
+        context.clearRect(0,0,canvas.width, canvas.height);
+
+        ball.draw();
+    }
+</script>
+</body>
+</html>

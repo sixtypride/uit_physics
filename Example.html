@@ -28,7 +28,7 @@
     var startX = 100;
     var startY = 100;
 
-    var speed = 50;
+    var speed = 10;
     var gravity = 0.4;
 
     var friction = 1;
@@ -74,7 +74,7 @@
 
     // animation tick
     function loop() {
-        ball.vec.vy += gravity;
+        //ball.vec.vy += gravity;
         ball.x += ball.vec.vx;
         ball.y += ball.vec.vy;
 
@@ -116,7 +116,11 @@
             ball.y -= e.vy;
 
             reflectVector(a);
+
+            return true;
         }
+
+        return false;
     }
 
     function hitTestByIntersect(line) {

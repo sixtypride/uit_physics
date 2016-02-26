@@ -26,26 +26,29 @@
 
     var box = new Box(100, 100, 100, 100, 50, 50);
 
-    //    box.rotate(Math.PI / 4);
-    //    box.scale(2,2);
-    //    box.translate(100,0);
+    requestAnimationFrame(loop);
 
-//
-    var cos = Math.cos(Math.PI / 4);
-    var sin = Math.sin(Math.PI / 4);
-//
-//    box.transform(1, 0, 0, 1, -150, -150);
-//    box.transform(2, 0, 0, 2, 0, 0);
-//    box.transform(cos, sin, -sin, cos, 0, 0);
+    function loop() {
+        context.clearRect(0,0, canvas.width, canvas.height);
 
-    var offsetMat = new Matrix(1, 0, 0, 1, -150, -150);
-    var scaleMat = new Matrix(2, 0, 0, 2, 0, 0);
-    var rotateMat = new Matrix(cos, sin, -sin, cos, 0, 0);
-    var transMat = new Matrix(1, 0, 0, 1, 150, 150);
+        var offsetX = box.x + box.anchorX;
+        var offsetY = box.y + box.anchorY;
 
-    box.transformMatrix(offsetMat.concat(scaleMat).concat(rotateMat).concat(transMat));
+        var cos = Math.cos(0.05);
+        var sin = Math.sin(0.05);
 
-    box.draw();
+        var offsetMat = new Matrix(1, 0, 0, 1, -offsetX, -offsetY);
+        var rotateMat = new Matrix(cos, sin, -sin, cos, offsetX + 10, offsetY);
+//        var transMat = new Matrix(1, 0, 0, 1, offsetX + 10, offsetY);
+        box.transformMatrix(offsetMat.concat(rotateMat));
+        //box.transformMatrix(translate);
+
+        box.draw();
+
+        requestAnimationFrame(loop);
+    }
+
+
 
 </script>
 </body>

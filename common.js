@@ -85,68 +85,7 @@ Ball.prototype = {
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         context.fillStyle = this.color;
         context.fill();
-    },
-    hitTest : function(box) {
-        for(var i = 0; i < box.lines.length; i++){
-            this.hitTestByDistance(box.lines[i]);
-        }
-    },
-    hitTest2 : function(box) {
-        for(var i = 0; i < box.lines.length; i++){
-            var line = new Line(new Point(this.x, this.y), new Point(this.x + this.vec.vx, this.y + this.vec.vy));
-            this.hitTestByIntersect(line, box.lines[i]);
-        }
-    },
-    hitTestByDistance : function (line) {
-        var a = new Vector2d(line.ePt.x - line.sPt.x, line.ePt.y - line.sPt.y);
-        var b = new Vector2d(line.sPt.x - ball.x, line.sPt.y - ball.y);
-
-        var t = (b.dot(a) / a.dot(a)) * -1;
-
-        if(t < 0 || t > 1) return;
-
-        var p = a.scale(t).add(b);
-
-        if(p.length() <= ball.radius){
-
-            var c = new Vector2d(line.sPt.x - ball.x, line.sPt.y - ball.y);
-            var s = c.dot(a.normal().normalize());
-            var d = a.normal().normalize().scale(this.radius - s);
-            ball.x -= d.vx;
-            ball.y -= d.vy;
-
-            var v = this.getReflectionVector(a);
-
-            this.vec.vx = v.vx;
-            this.vec.vy = v.vy;
-
-            return true;
-        }
-
-        return false;
-    },
-    hitTestByIntersect : function(line, line1) {
-        var a = new Vector2d(line.ePt.x - line.sPt.x, line.ePt.y - line.sPt.y);
-        var i = new Vector2d(line1.ePt.x - line1.sPt.x, line1.ePt.y - line1.sPt.y);
-        var b = new Vector2d(line.sPt.x - line1.sPt.x, line.sPt.y - line1.sPt.y);
-
-        var t = b.dot(i.normal()) / a.dot(i.normal()) * -1;
-        var s = b.dot(a.normal()) / i.dot(a.normal());
-
-        if(t < 0 || t > 1 || s < 0 || s > 1) return;
-
-        var p = a.scale(t).add(b);
-
-        //ball.x = line1.sPt.x + p.vx;
-        //ball.y = line1.sPt.y + p.vy;
-
-        var v = this.getReflectionVector(i);
-
-        ball.vec = v;
-
-    },
-
-
+    }
 };
 
 function Box(x, y, width, height, anchorX, anchorY, cw) {
@@ -155,6 +94,8 @@ function Box(x, y, width, height, anchorX, anchorY, cw) {
     this.y = y;
     this.width = width;
     this.height = height;
+    this.anchorX = anchorX;
+    this.anchorY = anchorY;
     this.anchorX = width * anchorX;
     this.anchorY = height * anchorY;
 

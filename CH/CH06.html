@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    ///////////////////////////////////////////
+    function Line(sPt, ePt) {
+        this.sPt = sPt;
+        this.ePt = ePt;
+    }
+    Line.prototype = {
+        draw : function () {
+            context.save();
+
+            context.beginPath();
+            context.moveTo(this.sPt.x, this.sPt.y);
+            context.lineTo(this.ePt.x, this.ePt.y);
+            context.stroke();
+
+            context.restore();
+        }
+    }
+    ///////////////////////////////////////////
+    function Box(x, y, width, height, anchorX, anchorY) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.anchorX = width * anchorX;
+        this.anchorY = height * anchorY;
+
+        this.lt = new Point(this.x - this.anchorX, this.y - this.anchorY);
+        this.rt = new Point(this.lt.x + this.width, this.lt.y);
+        this.rb = new Point(this.rt.x, this.rt.y + this.height);
+        this.lb = new Point(this.lt.x, this.rb.y);
+
+        this.points = [this.lt, this.rt, this.rb, this.lb];
+        this.lines = [new Line(this.lt, this.rt), new Line(this.rt, this.rb), new Line(this.rb, this.lb), new Line(this.lb, this.lt)];
+    }
+    Box.prototype = {
+        translate : function (tx, ty) {
+            for(var i = 0; i < this.points.length; i++) {
+                var pt = this.points[i];
+
+                pt.x = pt.x + tx;
+                pt.y = pt.y + ty;
+            }
+            this.x += tx;
+            this.y += ty;
+        },
+        scale : function (sx, sy) {
+            for(var i = 0; i < this.points.length; i++) {
+                var pt = this.points[i];
+
+                pt.x = pt.x - this.x;
+                pt.y = pt.y - this.y;
+
+                pt.x = pt.x * sx;
+                pt.y = pt.y * sy;
+
+                pt.x = pt.x + this.x;
+                pt.y = pt.y + this.y;
+            }
+        },
+        rotate : function (r) {
+            var cos = Math.cos(r);
+            var sin = Math.sin(r);
+            for(var i = 0; i < this.points.length; i++) {
+                var pt = this.points[i];
+
+                pt.x = pt.x - this.x;
+                pt.y = pt.y - this.y;
+
+                var x = pt.x;
+                var y = pt.y;
+
+                pt.x = cos * x - sin * y;
+                pt.y = sin * x + cos * y;
+
+                pt.x = pt.x + this.x;
+                pt.y = pt.y + this.y;
+            }
+        },
+        transform : function (a, b, c, d, tx, ty) {
+            for(var i = 0; i < this.points.length; i++) {
+                var pt = this.points[i];
+                var x = pt.x;
+                var y = pt.y;
+
+                pt.x = a * x + c * y + tx;
+                pt.y = b * x + d * y + ty;
+            }
+        },
+        setTransform :function (a, b, c, d, tx, ty) {
+            this.lt = new Point(this.x - this.anchorX, this.y - this.anchorY);
+            this.rt = new Point(this.lt.x + this.width, this.lt.y);
+            this.rb = new Point(this.rt.x, this.rt.y + this.height);
+            this.lb = new Point(this.lt.x, this.rb.y);
+
+            this.points = [this.lt, this.rt, this.rb, this.lb];
+            this.lines = [new Line(this.lt, this.rt), new Line(this.rt, this.rb), new Line(this.rb, this.lb), new Line(this.lb, this.lt)];
+
+            this.transform(a, b, c, d, tx, ty);
+        },
+        draw : function () {
+            for(var i = 0; i < this.lines.length; i++) {
+                this.lines[i].draw();
+            }
+        }
+    };
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+
+    var box = new Box(100,100,100,100, 0.5, 0.5);
+
+//    box.scale(2,2);
+//    box.rotate(0.1);
+
+
+
+//    box.transform(1, 0, 0, 1, -100, -100);
+//    box.transform(2, 0, 0, 2, 100, 100);
+    // box.transform(1, 0, 0, 1, 100, 100);
+
+//    box.transform(1, 1, 1, 0, 0, 0);
+
+    requestAnimationFrame(loop);
+
+    function loop() {
+        render();
+        requestAnimationFrame(loop);
+    }
+
+    var t = 0;
+    function render() {
+        context.clearRect(0,0, canvas.width, canvas.height);
+
+        t += 0.1;
+        box.setTransform(1, 0, 0, 1, -100, -100);
+        box.transform(Math.cos(t) + 2, 1, 1, Math.cos(t) + 2, 300, 300);
+
+        box.draw();
+    }
+
+</script>
+</body>
+</html>
