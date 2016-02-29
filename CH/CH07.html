@@ -64,7 +64,6 @@
         this.y = y;
     }
     ///////////////////////////////////////////
-    ///////////////////////////////////////////
     function Line(sPt, ePt) {
         this.sPt = sPt;
         this.ePt = ePt;
@@ -81,7 +80,6 @@
             context.restore();
         }
     }
-    ///////////////////////////////////////////
     ///////////////////////////////////////////
     function Box(x, y, width, height, anchorX, anchorY) {
         this.x = x;
@@ -193,11 +191,15 @@
         requestAnimationFrame(loop);
     }
 
+    var o = new Matrix(1,0,0,1, -box.x, -box.y);
+    var r = new Matrix(Math.cos(0.1), Math.sin(0.1), -Math.sin(0.1), Math.cos(0.1), box.x, box.y);
+
+    var mat = o.concat(r);
+
     function render() {
         context.clearRect(0,0, canvas.width, canvas.height);
 
-        box.rotate(0.1);
-
+        box.transformMatrix(mat);
         box.draw();
     }
 
