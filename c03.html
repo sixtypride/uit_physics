@@ -55,32 +55,17 @@
     ball.x = 100;
     ball.y = 100;
 
-    var friction = 0.97;
-
-    var ax = 0;
-    var ay = 0;
+    var gravity = 0.4;
 
     var vx = 5;
-    var vy = 0;
-
-    canvas.onmousedown = function() {
-        ax = 0.5;
-    };
-
-    canvas.onmouseup = function () {
-        ax = 0;
-    }
+    var vy = -5;
 
     requestAnimationFrame(loop);
 
     function loop() {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        vx += ax;
-        vy += ay;
-
-        vx *= friction;
-        vy *= friction;
+        vy += gravity;
 
         ball.x += vx;
         ball.y += vy;
