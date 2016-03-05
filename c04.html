@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+
+    function windowToCanvas(x, y) {
+        var bbox = canvas.getBoundingClientRect();
+
+        return { x : x - bbox.left, y : y - bbox.top }
+    }
+
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function Ball() {
+        this.x = 0;
+        this.y = 0;
+        this.radius = 10;
+        this.color = "red";
+        this.angle = 0;
+    }
+
+    Ball.prototype = {
+        draw : function () {
+            context.save();
+
+            context.translate(this.x, this.y);
+            context.rotate(this.angle);
+
+            context.beginPath();
+            context.arc(0, 0, this.radius, 0, Math.PI * 2);
+            //context.fillRect(0, 0, 50, 10);
+            context.fillStyle = this.color;
+            context.fill();
+
+            context.restore();
+        }
+    };
+
+    var ball = new Ball();
+    ball.color = "red";
+
+    ball.x = 100;
+    ball.y = 100;
+
+    var vx = 5;
+    var vy = 0;
+
+    var target = { x : 0, y : 0 }
+
+    canvas.onmousedown = function(e) {
+        var loc = windowToCanvas(e.clientX, e.clientY);
+        target = loc;
+    }
+
+    requestAnimationFrame(loop);
+
+    function loop() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        var dx = target.x - ball.x;
+        var dy = target.y - ball.y;
+
+        vx = dx * 0.1;
+        vy = dy * 0.1;
+
+        ball.x += vx;
+        ball.y += vy;
+
+        if(ball.x > canvas.width) {
+            ball.x = 0;
+        }
+
+        ball.draw();
+        requestAnimationFrame(loop);
+    }
+
+</script>
+</body>
+</html>
