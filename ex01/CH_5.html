@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+
+    function windowToCanvas(x, y) {
+        var bbox = canvas.getBoundingClientRect();
+
+        return { x : x - bbox.left, y : y - bbox.top }
+    }
+
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function Ball() {
+        this.x = 0;
+        this.y = 0;
+
+        this.ax = 0;
+        this.ay = 0;
+
+        this.vx = 0;
+        this.vy = 0;
+        this.radius = 10;
+        this.color = "red";
+        this.angle = 0;
+    }
+
+    Ball.prototype = {
+        draw : function () {
+            context.save();
+
+            context.beginPath();
+            context.translate(this.x , this.y);
+            //context.rotate(this.angle);
+
+            context.arc(0, 0, this.radius, 0 , Math.PI * 2);
+
+            context.fillStyle = this.color;
+            //context.fillRect(-30, -5, 30, 10);
+            context.fill();
+
+            context.restore();
+        }
+    }
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    function Vector2d(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    Vector2d.prototype = {
+        add : function (vec) {
+            return new Vector2d(this.x + vec.x, this.y + vec.y);
+        },
+        sub : function (vec) {
+            return new Vector2d(this.x - vec.x, this.y - vec.y);
+        },
+        scale : function (scale) {
+            return new Vector2d(this.x * scale, this.y * scale);
+        },
+        dot : function (vec) {
+            return this.x * vec.x + this.y * vec.y;
+        },
+        length : function () {
+            return Math.sqrt(this.x * this.x + this.y * this.y);
+        },
+        normalize : function () {
+            var len = this.length();
+            return new Vector2d(this.x / len, this.y / len);
+        },
+        perp : function () {
+            return new Vector2d(-this.y, this.x);
+        }
+    };
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+
+    var speed = 5;
+    var angle = 0;
+
+    var ball = new Ball();
+
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+
+
+    canvas.onmousemove = function (e) {
+        var loc = windowToCanvas(e.clientX, e.clientY);
+
+        var mv = new Vector2d(loc.x - ball.x, loc.y - ball.y);
+        mv = mv.normalize().scale(speed);
+
+        ball.vx = mv.x;
+        ball.vy = mv.y;
+    };
+
+    requestAnimationFrame(loop);
+
+    function loop() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        ball.draw();
+        requestAnimationFrame(loop);
+    }
+
+</script>
+</body>
+</html>

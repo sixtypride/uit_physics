@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+
+    function windowToCanvas(x, y) {
+        var bbox = canvas.getBoundingClientRect();
+
+        return { x : x - bbox.left, y : y - bbox.top }
+    }
+
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function Ball() {
+        this.x = 0;
+        this.y = 0;
+
+        this.ax = 0;
+        this.ay = 0;
+
+        this.vx = 0;
+        this.vy = 0;
+        this.radius = 10;
+        this.color = "red";
+    }
+
+    Ball.prototype = {
+        draw : function () {
+            context.save();
+
+            context.beginPath();
+            context.translate(this.x , this.y);
+//            context.rotate(90 * Math.PI / 180);
+
+            context.arc(0, 0, this.radius, 0 , Math.PI * 2);
+
+            context.fillStyle = this.color;
+            //context.fillRect(0, -5, 30, 10);
+            context.fill();
+
+            context.restore();
+        }
+    }
+
+    var friction = 0.97;
+    var gravity = 0.4;
+
+    var speed = 800; // 초당 100px
+
+    var ball = new Ball();
+
+    ball.x = 0;
+    ball.y = canvas.height / 2;
+
+    ball.ax = 0;
+    ball.ay = 0;
+
+    ball.vx = speed;
+    ball.vy = speed;
+
+    var target = { x : 0, y : 0 };
+
+    var time = +new Date();
+
+    var duration = 500;
+
+    var startX = 0;
+    var startY = 0;
+
+    canvas.onmousedown = function (e) {
+        var loc = windowToCanvas(e.clientX, e.clientY);
+
+        target = loc;
+
+        time = +new Date();
+
+        startX = ball.x;
+        startY = ball.y;
+
+        requestAnimationFrame(loop);
+    };
+
+    function loop() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        var elapsedTime = +new Date() - time;
+
+        var per = elastic(elapsedTime / duration);
+
+        ball.x = startX + (target.x - startX) * per;
+        ball.y = startY + (target.y - startY) * per;
+
+        if(elapsedTime >= duration) {
+            ball.x = target.x;
+            ball.y = target.y;
+            ball.draw();
+            return;
+        }
+
+
+        ball.draw();
+        requestAnimationFrame(loop);
+    }
+
+    function linear(per) {
+        return per;
+    }
+
+    function easeIn(per) {
+        return Math.pow(per, 2);
+    }
+
+    function easeOut(per) {
+        return 1 - Math.pow(1 - per, 2);
+    }
+
+    function easeInOut(per) {
+        return per - Math.sin(per * 2 * Math.PI) / (2 * Math.PI);
+    }
+
+    function elastic(per) {
+        return ((1 - Math.cos(per * Math.PI * 10)) *
+                (1 - per)) + per;
+    }
+
+    function bounce(per) {
+        per = elastic(per);
+        return per <= 1 ? per : 2 - per;
+    }
+
+
+</script>
+</body>
+</html>
