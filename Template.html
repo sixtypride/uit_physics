@@ -24,18 +24,32 @@
     var context = canvas.getContext("2d");
     ///////////////////////////////////////////
     ///////////////////////////////////////////
-
-
-    requestAnimationFrame(loop);
-
-    function loop() {
-        render();
-        requestAnimationFrame(loop);
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
     }
 
-    function render() {
-
+    function Line(sPt, ePt) {
+        this.sPt = sPt;
+        this.ePt = ePt;
     }
+
+    Line.prototype = {
+        draw : function () {
+            context.save();
+
+            context.beginPath();
+            context.moveTo(this.sPt.x, this.sPt.y);
+            context.lineTo(this.ePt.x, this.ePt.y);
+            context.stroke();
+
+            context.restore();
+        }
+    }
+
+    var line = new Line(new Point(100, 100), new Point( 200, 200));
+    line.draw();
+
 
 </script>
 </body>

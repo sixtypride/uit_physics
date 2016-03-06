@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Example</title>
+
+    <style>
+        body {
+            background: #dddddd;
+        }
+
+        #canvas {
+            background: #ffffff;
+            border: thin inset #aaaaaa;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id='canvas' width="800" height="600">
+    Canvas not supported
+</canvas>
+<script>
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+
+    function windowToCanvas(x, y) {
+        var bbox = canvas.getBoundingClientRect();
+
+        return { x : x - bbox.left, y : y - bbox.top }
+    }
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    function Vector2d(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    Vector2d.prototype = {
+        add : function (vec) {
+            return new Vector2d(this.x + vec.x, this.y + vec.y);
+        },
+        sub : function (vec) {
+            return new Vector2d(this.x - vec.x, this.y - vec.y);
+        },
+        scale : function (scale) {
+            return new Vector2d(this.x * scale, this.y * scale);
+        },
+        dot : function (vec) {
+            return this.x * vec.x + this.y * vec.y;
+        },
+        length : function () {
+            return Math.sqrt(this.x * this.x + this.y * this.y);
+        },
+        normalize : function () {
+            var len = this.length();
+            return new Vector2d(this.x / len, this.y / len);
+        },
+        perp : function () {
+            return new Vector2d(-this.y, this.x);
+        }
+    };
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////
+    ///////////////////////////////////////////
+    function Ball() {
+        this.x = 0;
+        this.y = 0;
+        this.radius = 10;
+        this.color = "red";
+        this.angle = 0;
+    }
+
+    Ball.prototype = {
+        draw : function () {
+            context.save();
+
+            context.translate(this.x, this.y);
+            context.rotate(this.angle);
+
+            context.beginPath();
+            context.arc(0, 0, this.radius, 0, Math.PI * 2);
+            //context.fillRect(-50, -5, 50, 10);
+            context.fillStyle = this.color;
+            context.fill();
+
+            context.restore();
+        }
+    };
+
+    var ball = new Ball();
+    ball.color = "red";
+
+    var speed = 20;
+
+    var bounce = 0.9;
+
+    var startX = 100;
+    var startY = 500;
+
+    ball.x = startX;
+    ball.y = startY;
+
+    var vx = 0;
+    var vy = 0;
+
+    canvas.onmousedown = function(e) {
+        var loc = windowToCanvas(e.clientX, e.clientY);
+
+        var dx = loc.x - startX;
+        var dy = loc.y - startY;
+
+        var mv = new Vector2d(dx, dy);
+        mv = mv.normalize().scale(speed);
+
+        ball.x = startX;
+        ball.y = startY;
+
+        vx = mv.x;
+        vy = mv.y;
+
+    }
+
+    requestAnimationFrame(loop);
+
+
+    function loop() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+
+        vy += 0.4;
+        ball.x += vx;
+        ball.y += vy;
+
+        if(ball.x < ball.radius) {
+            ball.x = ball.radius;
+            vx *= - bounce;
+            vy *= bounce;
+        } else if(ball.x > canvas.width - ball.radius) {
+            ball.x = canvas.width - ball.radius;
+            vx *= - bounce;
+            vy *= bounce;
+        } else if(ball.y < ball.radius) {
+            ball.y = ball.radius;
+            vy *= - bounce;
+            vx *= bounce;
+        } else if(ball.y > canvas.height - ball.radius) {
+            ball.y = canvas.height - ball.radius;
+            vy *= - bounce;
+            vx *= bounce;
+        }
+
+        ball.draw();
+        requestAnimationFrame(loop);
+    }
+</script>
+</body>
+</html>

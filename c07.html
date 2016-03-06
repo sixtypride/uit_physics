@@ -34,82 +34,68 @@
     function Ball() {
         this.x = 0;
         this.y = 0;
-
-        this.ax = 0;
-        this.ay = 0;
-
-        this.vx = 0;
-        this.vy = 0;
         this.radius = 10;
         this.color = "red";
+        this.angle = 0;
     }
 
     Ball.prototype = {
         draw : function () {
             context.save();
 
+            context.translate(this.x, this.y);
+            context.rotate(this.angle);
+
             context.beginPath();
-            context.translate(this.x , this.y);
-//            context.rotate(90 * Math.PI / 180);
-
-            context.arc(0, 0, this.radius, 0 , Math.PI * 2);
-
+            context.arc(0, 0, this.radius, 0, Math.PI * 2);
+            context.fillRect(-50, -5, 50, 10);
             context.fillStyle = this.color;
-            //context.fillRect(0, -5, 30, 10);
             context.fill();
 
             context.restore();
         }
-    }
-
-    var friction = 0.97;
-    var gravity = 0.4;
-
-    var ball = new Ball();
-
-    ball.x = canvas.width / 2;
-    ball.y = canvas.height / 2;
-
-    ball.ax = 0;
-    ball.ay = 0;
-
-    ball.vx = 0;
-    ball.vy = 0;
-
-    var target = { x : 0, y : 0 };
-
-    canvas.onmousemove = function (e) {
-        var loc = windowToCanvas(e.clientX, e.clientY);
-
-        target = loc;
     };
 
+    var ball = new Ball();
+    ball.color = "red";
+
+    var speed = 5;
+    var angle = 90;
+
+    var startX = 100;
+    var startY = 100;
+
+    ball.x = startX;
+    ball.y = startY;
+
+    var vx = 0;
+    var vy = 0;
+
+    canvas.onmousemove = function(e) {
+        var loc = windowToCanvas(e.clientX, e.clientY);
+
+        var dx = loc.x - ball.x;
+        var dy = loc.y - ball.y;
+
+        angle = Math.atan2(dy, dx);
+
+        vx = Math.cos(angle) * speed;
+        vy = Math.sin(angle) * speed;
+    }
 
     requestAnimationFrame(loop);
+
 
     function loop() {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        var dx = target.x - ball.x;
-        var dy = target.y - ball.y;
-
-        ball.ax = dx * 0.1;
-        ball.ay = dy * 0.1;
-
-        ball.vx += ball.ax;
-        ball.vy += ball.ay;
-
-        ball.vx *= friction;
-        ball.vy *= friction;
-
-        ball.x += ball.vx;
-        ball.y += ball.vy;
-
+        ball.angle = Math.atan2(vy, vx);
+        ball.x += vx;
+        ball.y += vy;
 
         ball.draw();
         requestAnimationFrame(loop);
     }
-
 </script>
 </body>
 </html>
